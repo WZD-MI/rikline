@@ -1,26 +1,58 @@
-import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useState, memo } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration } from "@/utils/validate"
-import { vscode } from "@/utils/vscode"
+import { WebServiceClient, StateServiceClient, ModelsServiceClient } from "@/services/grpc-client"
+import { StringRequest } from "@shared/proto/common"
 import ApiOptions from "@/components/settings/ApiOptions"
 import ClineLogoWhite from "@/assets/ClineLogoWhite"
-import { AccountServiceClient, ModelsServiceClient } from "@/services/grpc-client"
-import { EmptyRequest } from "@shared/proto/common"
+import { UpdateSettingsRequest } from "@shared/proto/state"
 import { UpdateApiConfigurationRequest } from "@shared/proto/models"
 import { convertApiConfigurationToProto } from "@shared/proto-conversions/models/api-configuration-conversion"
+import { convertApiConfigurationToProtoApiConfiguration } from "@shared/proto-conversions/state/settings-conversion"
 
 const WelcomeView = memo(() => {
-	const { apiConfiguration } = useExtensionState()
+	const { apiConfiguration, setApiConfiguration } = useExtensionState()
 	const [apiErrorMessage, setApiErrorMessage] = useState<string | undefined>(undefined)
 	const [showApiOptions, setShowApiOptions] = useState(false)
+	const [showTokenInput, setShowTokenInput] = useState(false)
+	const [zUserToken, setZUserToken] = useState("")
 
 	const disableLetsGoButton = apiErrorMessage != null
 
-	const handleLogin = () => {
-		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
-			console.error("Failed to get login URL:", err),
-		)
+	const handleLogin = async () => {
+		try {
+			await WebServiceClient.openInBrowser(
+				StringRequest.create({
+					value: "https://mone.test.mi.com/z/info",
+				}),
+			)
+			setShowTokenInput(true)
+		} catch (error) {
+			console.error("Error opening login page:", error)
+		}
+	}
+
+	const handleTokenSubmit = async () => {
+		if (zUserToken.trim()) {
+			const updatedConfig = {
+				...apiConfiguration,
+				zUserToken: zUserToken.trim(),
+			}
+			setApiConfiguration(updatedConfig)
+
+			try {
+				await StateServiceClient.updateSettings(
+					UpdateSettingsRequest.create({
+						apiConfiguration: convertApiConfigurationToProtoApiConfiguration(updatedConfig),
+					}),
+				)
+				setShowTokenInput(false)
+				setZUserToken("")
+			} catch (error) {
+				console.error("Failed to update settings with zUserToken:", error)
+			}
+		}
 	}
 
 	const handleSubmit = async () => {
@@ -66,6 +98,25 @@ const WelcomeView = memo(() => {
 				<VSCodeButton appearance="primary" onClick={handleLogin} className="w-full mt-1">
 					Get Started for Free
 				</VSCodeButton>
+
+				{showTokenInput && (
+					<div className="mt-4">
+						<div className="mb-2">
+							<label className="text-sm font-medium text-[var(--vscode-foreground)]">
+								请输入从登录页面获取的Token:
+							</label>
+						</div>
+						<VSCodeTextField
+							value={zUserToken}
+							placeholder="粘贴您的Token到这里"
+							onInput={(e) => setZUserToken((e.target as HTMLInputElement).value)}
+							className="w-full mb-2"
+						/>
+						<VSCodeButton onClick={handleTokenSubmit} disabled={!zUserToken.trim()} className="w-full">
+							提交Token
+						</VSCodeButton>
+					</div>
+				)}
 
 				{!showApiOptions && (
 					<VSCodeButton

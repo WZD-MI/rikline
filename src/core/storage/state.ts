@@ -252,6 +252,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		sapAiCoreModelId,
 		claudeCodePath,
 		miapiBaseUrl,
+		zUserToken,
 	] = await Promise.all([
 		getGlobalState(context, "isNewUser") as Promise<boolean | undefined>,
 		getSecret(context, "apiKey") as Promise<string | undefined>,
@@ -330,6 +331,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 		getGlobalState(context, "sapAiCoreModelId") as Promise<string | undefined>,
 		getGlobalState(context, "claudeCodePath") as Promise<string | undefined>,
 		getGlobalState(context, "miapiBaseUrl") as Promise<string | undefined>,
+		getSecret(context, "zUserToken") as Promise<string | undefined>,
 	])
 
 	const localClineRulesToggles = (await getWorkspaceState(context, "localClineRulesToggles")) as ClineRulesToggles
@@ -529,6 +531,7 @@ export async function getAllExtensionState(context: vscode.ExtensionContext) {
 			mifyBaseUrl: (await getGlobalState(context, "mifyBaseUrl")) as string | undefined,
 			mifyModelId,
 			mifyModelInfo,
+			zUserToken,
 		},
 		isNewUser: isNewUser ?? true,
 		lastShownAnnouncementId,
@@ -653,6 +656,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 		mifyBaseUrl,
 		mifyModelId,
 		mifyModelInfo,
+		zUserToken,
 	} = apiConfiguration
 	// Workspace state updates
 	await updateWorkspaceState(context, "apiProvider", apiProvider)
@@ -742,6 +746,7 @@ export async function updateApiConfiguration(context: vscode.ExtensionContext, a
 	await storeSecret(context, "sapAiCoreClientId", sapAiCoreClientId)
 	await storeSecret(context, "sapAiCoreClientSecret", sapAiCoreClientSecret)
 	await storeSecret(context, "mifyApiKey", mifyApiKey)
+	await storeSecret(context, "zUserToken", zUserToken)
 }
 
 export async function resetWorkspaceState(context: vscode.ExtensionContext) {
@@ -779,6 +784,7 @@ export async function resetGlobalState(context: vscode.ExtensionContext) {
 		"cerebrasApiKey",
 		"nebiusApiKey",
 		"mifyApiKey",
+		"zUserToken",
 	]
 	for (const key of secretKeys) {
 		await storeSecret(context, key, undefined)

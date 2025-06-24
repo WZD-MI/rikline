@@ -308,9 +308,11 @@ export const ExtensionStateContextProvider: React.FC<{
 										config.cerebrasApiKey,
 										config.nebiusApiKey,
 										config.fireworksApiKey,
+										config.zUserToken,
 									].some((key) => key !== undefined)
 								: false
-							setShowWelcome(!hasKey)
+							const hasZUserToken = config?.zUserToken !== undefined
+							setShowWelcome(!(hasKey && hasZUserToken))
 							setDidHydrateState(true)
 
 							console.log("[DEBUG] returning new state in ESC")
