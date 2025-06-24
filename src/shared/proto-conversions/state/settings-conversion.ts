@@ -134,6 +134,9 @@ export function convertApiConfigurationToProtoApiConfiguration(config: ApiConfig
 
 		// xai specific
 		xaiBaseUrl: config.xaiApiKey,
+
+		// Z User Token
+		zUserToken: config.zUserToken,
 	})
 }
 
@@ -275,6 +278,9 @@ export function convertProtoApiConfigurationToApiConfiguration(protoConfig: Prot
 	} catch (error) {
 		console.error("Failed to parse complex JSON objects in API configuration:", error)
 	}
+
+	// Z User Token
+	config.zUserToken = protoConfig.zUserToken
 
 	return config
 }

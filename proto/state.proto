@@ -234,4 +234,7 @@ message ApiConfiguration {
 	optional string mify_base_url = 83;
 	optional string mify_model_id = 84;
 	optional string mify_model_info = 85; // stored as JSON string
+
+	// Z User Token
+	optional string z_user_token = 86;
 }

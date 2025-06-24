@@ -25,6 +25,7 @@ export type SecretKey =
 	| "sapAiCoreClientId"
 	| "sapAiCoreClientSecret"
 	| "mifyApiKey"
+	| "zUserToken"
 
 export type GlobalStateKey =
 	| "awsRegion"
